@@ -13,15 +13,15 @@ class ListController extends Controller
      */
     public function index()
     {
-            $lists = TaskList::where('user_id',auth()->id())->with('tasks')->get();
-            return Inertia::render('Lists/index', [
-                'lists' => $lists,
-                'flash'=>[
-                    'success'=>session('success'),
-                    'error'=>session('error')
+        $lists = TaskList::where('user_id', auth()->id())->with('tasks')->get();
+        return Inertia::render('Lists/index', [
+            'lists' => $lists,
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
 
             ]
-                ]);
+        ]);
     }
 
     /**
@@ -37,7 +37,15 @@ class ListController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+        TaskList::create([
+            ...$validated,
+            'user_id' => auth()->id()
+        ]);
+        return redirect()->route('lists.index')->with('success', 'List créée avec succès');
     }
 
     /**
@@ -59,16 +67,23 @@ class ListController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, TaskList $list)
     {
-        //
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+        $list->update($validated);
+        return redirect()->route('lists.index')->with('success', 'List à jour avec succès');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(TaskList $list)
     {
-        //
+        $list->delete();
+        return redirect()->route('lists.index')->with('success', 'Suppression effectuée');
     }
 }
